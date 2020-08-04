@@ -54,14 +54,14 @@ commands:
 
 ```
 $ stack repl
-$ cabal new-repl
+$ cabal repl
 ```
 
 ### Build
 
 ```
 $ stack build
-$ cabal new-build
+$ cabal build
 ```
 
 It's going to make it a lot easier to iterate through the exercises if you
@@ -71,5 +71,5 @@ repl command:
 
 ```
 $ ghcid -c "stack repl"
-$ ghcid -c "cabal new-repl"
+$ ghcid -c "cabal repl"
 ```
