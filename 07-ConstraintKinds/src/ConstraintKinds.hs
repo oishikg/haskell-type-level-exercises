@@ -1,13 +1,13 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE GADTs           #-}
+{-# LANGUAGE KindSignatures  #-}
 
 {- Two of the -} module {- topics I found particularly difficult to place were
 -} ConstraintKinds {- and @PolyKinds@. I think as we explore concepts like
 MultiParamTypeClasses, it will become obvious why it's hard to say exactly
 -} where {- it belongs. Anyway, all that for later; let's go! -}
 
-import Data.Kind (Constraint, Type)
+import           Data.Kind (Constraint, Type)
 
 {-
   In Haskell, we are hopefully all familiar with the idea of type parameters.
@@ -79,8 +79,9 @@ data HasConstraint (c :: Type -> Constraint) where
 -}
 
 data Dict (c :: Constraint) where
-  Dict :: c => Dict c
+  Dict :: c => Dict  c
 
+-- How is this a constraint as a datatype?
 {-
   Dict is a constraint as a data type. True to the magic of a GADT,
   pattern-matching on a @Dict@ will bring its contents into scope. This allows

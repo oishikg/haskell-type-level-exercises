@@ -9,8 +9,8 @@ GADTs in particular, but there are plenty more cases to follow! -}
 
 ---
 
-import Data.Kind (Constraint, Type)
-import Prelude hiding (zip)
+import           Data.Kind (Constraint, Type)
+import           Prelude   hiding (zip)
 
 {-
   Now we know about flexible instances, kind signatures, and GADTs, we have a

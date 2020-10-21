@@ -17,7 +17,7 @@ just good documentation.. -}
   by using the following import.
 -}
 
-import Data.Kind -- Type = (*)
+import           Data.Kind
 
 {-
   This is a good habit to adopt, as '*' is going to be deprecated soon, in
@@ -76,7 +76,7 @@ class OfKindTypeToType (a :: Type -> Type)
 
 instance OfKindTypeToType Maybe
 instance OfKindTypeToType []
-instance OfKindTypeToType (Either e) -- What is the kind of 'Either'?
+instance OfKindTypeToType (Either e)  -- What is the kind of 'Either'? * -> * -> *
 instance OfKindTypeToType ((,) a)
 instance OfKindTypeToType IO
 

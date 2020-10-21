@@ -1,14 +1,14 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ConstraintKinds      #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE RankNTypes           #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 module Exercises where -- ^ This is starting to look impressive, right?
 
-import Data.Kind (Constraint, Type)
+import           Data.Kind (Constraint, Type)
 
 -- | Just a quick one today - there really isn't much to cover when we talk
 -- about ConstraintKinds, as it's hopefully quite an intuitive extension: we're
@@ -34,13 +34,16 @@ data List a = Nil | Cons a (List a)
 -- constraints can the @Nil@ case satisfy?
 
 data ConstrainedList (c :: Type -> Constraint) where
-  -- IMPLEMENT ME
+  ClNil :: ConstrainedList c -- None!
+  ClCons :: c a => a -> ConstrainedList c -> ConstrainedList c
 
 -- | b. Using what we know about RankNTypes, write a function to fold a
 -- constrained list. Note that we'll need a folding function that works /for
 -- all/ types who implement some constraint @c@. Wink wink, nudge nudge.
 
--- foldConstrainedList :: ???
+foldConstrainedList :: (forall a. (c a) => r -> a -> r) -> r -> ConstrainedList c  -> r
+foldConstrainedList f nil ClNil         = nil
+foldConstrainedList f nil (ClCons x xs) = f (foldConstrainedList f nil xs) x
 
 -- | Often, I'll want to constrain a list by /multiple/ things. The problem is
 -- that I can't directly write multiple constraints into my type, because the
@@ -54,14 +57,20 @@ data ConstrainedList (c :: Type -> Constraint) where
 -- combines `Monoid a` and `Show a`. What other extension did you need to
 -- enable? Why?
 
--- class ??? => Constraints a
--- instance ??? => Constraints a
+-- Constraints :: Type -> Constraint
+class (Monoid a, Show a) => Constraints a
 
--- | What can we now do with this constrained list that we couldn't before?
+-- This defines a Constraint instance for /any/ type which has a Monoid and Show
+instance (Monoid a, Show a) => Constraints a
+
+
+
+-- What is happening here? Why does this work?
+
+-- | what can we now do with this constrained list that we couldn't before?
 -- There are two opportunities that should stand out!
 
-
-
+-- Fold it and print ?
 
 
 {- TWO -}
@@ -80,6 +89,10 @@ data HList (xs :: [Type]) where
 
 -- | a. Write this fold function. I won't give any hints to the definition, but
 -- we will probably need to call it like this:
+
+foldHList :: TCProxy c -> (t -> m) -> HList ts -> m
+foldHList f HNil         = mempty
+foldHList f (HCons x xs) = f x <> foldHList f xs
 
 -- test :: ??? => HList xs -> String
 -- test = fold (TCProxy :: TCProxy Show) show

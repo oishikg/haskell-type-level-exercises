@@ -1,7 +1,9 @@
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds     #-}
 {-# LANGUAGE GADTs         #-}
 {-# LANGUAGE TypeFamilies  #-}
-{-# LANGUAGE TypeOperators #-}
+
 module Exercises where
 
 import Data.Kind (Constraint, Type)
@@ -22,15 +24,28 @@ data Nat = Z | S Nat
 -- | a. Use the @TypeOperators@ extension to rewrite the 'Add' family with the
 -- name '+':
 
+type family (+) (x :: Nat) (y :: Nat) :: Nat where
+  (+) 'Z y     = y
+  (+) ('S x) y = 'S (x + y)
+
 -- | b. Write a type family '**' that multiplies two naturals using '(+)'. Which
 -- extension are you being told to enable? Why?
+
+type family (**) (x :: Nat) (y :: Nat) :: Nat where
+  (**) 'Z y      = 'Z
+  (**) ('S x) y = y + (x ** y)
+
+-- Why is this undecideable? A program is undecideable if we cannot algorithmically decide
+-- whether it terminates or not
 
 data SNat (value :: Nat) where
   SZ :: SNat 'Z
   SS :: SNat n -> SNat ('S n)
 
 -- | c. Write a function to add two 'SNat' values.
-
+addSNats :: SNat v1 -> SNat v2 -> SNat (v1 + v2)
+addSNats SZ y     = y
+addSNats (SS v) y = SS $ addSNats v y
 
 
 
@@ -44,14 +59,19 @@ data Vector (count :: Nat) (a :: Type) where
 -- | a. Write a function that appends two vectors together. What would the size
 -- of the result be?
 
--- append :: Vector m a -> Vector n a -> Vector ??? a
+append :: Vector m a -> Vector n a -> Vector (m + n) a
+append VNil ys = ys
+append (VCons x xs) ys = VCons x (append xs ys)
 
 -- | b. Write a 'flatMap' function that takes a @Vector n a@, and a function
 -- @a -> Vector m b@, and produces a list that is the concatenation of these
 -- results. This could end up being a deceptively big job.
 
--- flatMap :: Vector n a -> (a -> Vector m b) -> Vector ??? b
-flatMap = error "Implement me!"
+flatMap :: Vector n a -> (a -> Vector m b) -> Vector (n ** m) b
+flatMap VNil f = VNil
+flatMap (VCons x xs) f = append (f x) (flatMap xs f)
+
+-- Why does m ** n not work?
 
 
 

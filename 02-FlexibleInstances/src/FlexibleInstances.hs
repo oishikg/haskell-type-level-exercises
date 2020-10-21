@@ -74,6 +74,7 @@ instance SomeClass ()           -- No variables!
 -- instance SomeClass (Maybe Bool)
 
 
+
 -- The variables are not unique.
 
 -- instance SomeClass (Either e e)

@@ -1,14 +1,10 @@
 {-# LANGUAGE DataKinds      #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE GADTs          #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE RankNTypes     #-}
 module Exercises where
 
-import Data.Kind (Type)
-
-
-
-
+import           Data.Kind (Type)
 
 {- ONE -}
 
@@ -20,13 +16,25 @@ data Exlistential where
 
 -- | a. Write a function to "unpack" this exlistential into a list.
 
--- unpackExlistential :: Exlistential -> (forall a. a -> r) -> [r]
--- unpackExlistential = error "Implement me!"
+unpackExlistential :: Exlistential -> (forall a. a -> r) -> [r]
+unpackExlistential Nil _         = []
+unpackExlistential (Cons x xs) f = (f x) : (unpackExlistential xs f)
+
+-- Test data of the Existential type
+testVal0 :: Exlistential
+testVal0 = Cons 3 (Cons "Hello" Nil)
+
 
 -- | b. Regardless of which type @r@ actually is, what can we say about the
 -- values in the resulting list?
 
+-- They will all be of the same type, and will be the same value. This is
+-- because there is no way we can adjust the value depending on the input value
+-- (since we have no idea what the input type is)
+
 -- | c. How do we "get back" knowledge about what's in the list? Can we?
+
+-- Because of the above reason, no!
 
 
 
@@ -42,16 +50,26 @@ data CanFold a where
 
 -- | a. The following function unpacks a 'CanFold'. What is its type?
 
--- unpackCanFold :: ???
--- unpackCanFold f (CanFold x) = f x
+-- Had we just used the type (f a -> b) for the function f, then we would have
+-- got an error. This is because using the type variable f would fix its value.
+-- However, as the type definition of CanFold suggests, the type variable f
+-- could be any type -> type kinded constructor, so long as it derives the
+-- Foldable interface
+unpackCanFold :: (forall f. Foldable f => f a -> b) -> CanFold a -> b
+unpackCanFold f (CanFold x) = f x
 
 -- | b. Can we use 'unpackCanFold' to figure out if a 'CanFold' is "empty"?
 -- Could we write @length :: CanFold a -> Int@? If so, write it!
 
+isCanFoldEmpty :: CanFold a -> Bool
+isCanFoldEmpty = unpackCanFold ((== "") . (foldMap (\_ -> "a")))
+
+canFoldLength :: CanFold a -> Int
+canFoldLength = unpackCanFold (foldr (\_ acc -> acc + 1) 0)
+
 -- | c. Write a 'Foldable' instance for 'CanFold'. Don't overthink it.
-
-
-
+instance Foldable CanFold where
+  foldr f z = unpackCanFold (foldr f z)
 
 
 {- THREE -}
@@ -64,12 +82,44 @@ data EqPair where
 -- | a. Write a function that "unpacks" an 'EqPair' by applying a user-supplied
 -- function to its pair of values in the existential type.
 
+-- Interestingly, we can't compile this without the type definition. This is
+-- again because the GADT defines an existential that is only accessible in the
+-- scope of the EqPair constructor.
+
+-- Without the type definition, GHC would annotate unpackEqPair with a rank1 type
+-- as follows:
+-- unpackEqPair :: forall a => (a -> a -> b) -> EqPair -> b
+-- The issue with this is, the calling function concretizes the type variable a;
+-- but the existential type variable in the EqPair value is still polymorphic!
+--
+unpackEqPair :: (forall a. Eq a => a -> a -> b) -> EqPair -> b
+unpackEqPair f (EqPair a b) = f a b
+
 -- | b. Write a function that takes a list of 'EqPair's and filters it
 -- according to some predicate on the unpacked values.
+
+filterEqPair :: [EqPair]
+             -> (forall a. Eq a => a -> a -> b)
+             -> (forall a. a -> Bool)
+             -> [EqPair]
+filterEqPair [] _ _ = []
+filterEqPair (x : xs) unpack pred = if pred $ unpackEqPair unpack x
+                                    then filterEqPair xs unpack pred
+                                    else x : filterEqPair xs unpack pred
+
+-- Can this be done without the additional unpack function?
 
 -- | c. Write a function that unpacks /two/ 'EqPair's. Now that both our
 -- variables are in rank-2 position, can we compare values from different
 -- pairs?
+unpackTwoEqPairs :: (forall a b. (Eq a, Eq b) => a -> a -> b -> b -> c)
+                 -> EqPair
+                 -> EqPair
+                 -> c
+unpackTwoEqPairs f (EqPair a1 a2) (EqPair b1 b2) = f a1 a2 b1 b2
+
+-- No, because there is no guarantee that the existential type in the different
+-- pairs will be the same
 
 
 
@@ -97,13 +147,27 @@ data Nested input output subinput suboutput
 -- | a. Write a GADT to existentialise @subinput@ and @suboutput@.
 
 data NestedX input output where
-  -- ...
+    NestedX :: Component subinput suboutput
+            -> (input -> subinput)
+            -> (suboutput -> output)
+            -> NestedX input output
 
 -- | b. Write a function to "unpack" a NestedX. The user is going to have to
 -- deal with all possible @subinput@ and @suboutput@ types.
 
+unpackNestedX :: NestedX input output
+              -> (forall subinput suboutput. Component subinput suboutput
+                                          -> (input -> subinput)
+                                          -> (suboutput -> output)
+                                          -> c )
+              -> c
+unpackNestedX (NestedX inner input output) f = f inner input output
+
+
 -- | c. Why might we want to existentialise the subtypes away? What do we lose
 -- by doing so? What do we gain?
+
+-- ?
 
 -- In case you're interested in where this actually turned up in the code:
 -- https://github.com/i-am-tom/purescript-panda/blob/master/src/Panda/Internal/Types.purs#L84

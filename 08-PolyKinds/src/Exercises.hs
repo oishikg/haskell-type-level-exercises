@@ -9,6 +9,9 @@ import Data.Kind    (Constraint, Type)
 import GHC.TypeLits (Symbol)
 
 
+mySum :: Int -> Int -> Int
+mySum x y = x + y
+
 
 
 
@@ -22,6 +25,14 @@ type family All (c :: Type -> Constraint) (xs :: [Type]) :: Constraint where
 
 -- | a. Why does it have to be restricted to 'Type'? Can you make this more
 -- general?
+type family All1 (c :: Type -> Constraint) (xs :: [k]) :: Constraint where
+  All1 c '[] = ()
+  All1 c (x ': xs) = (c x, All c xs)
+
+-- Constraint: Implicit dictionaries passed to functions
+-- Vladislav Zavialov desugaring
+-- We can do this because regar
+
 
 -- | b. Why does it have to be restricted to 'Constraint'? Can you make this
 -- more general? Why is this harder?
@@ -58,6 +69,7 @@ f (Tagged x) = putStrLn (show x <> " is important!")
 -- | a. Symbols are all well and good, but wouldn't it be nicer if we could
 -- generalise this?
 
+
 -- | b. Can we generalise 'Type'? If so, how? If not, why not?
 
 -- | c. Often when we use the 'Tagged' type, we prefer a sum type (promoted
@@ -72,7 +84,8 @@ f (Tagged x) = putStrLn (show x <> " is important!")
 -- | We can use the following to test type-level equivalence.
 
 data a :=: b where
-  Refl :: a :=: a
+  Refl :: a :=: b
+
 
 -- | a. What do you think the kind of (:=:) is?
 

@@ -6,7 +6,7 @@
 and their uses. We're not going to go -} where {- Csongor's talk went, though
 there is plenty of further reading to be done if you're interested! -}
 
-import Data.Kind (Type)
+import           Data.Kind (Type)
 
 data Nat = Z | S Nat
 
