@@ -1,5 +1,5 @@
 # haskell-type-level-exercises
-=======
+Forked from https://github.com/i-am-tom/haskell-exercises
 # GHC exercises 🚀
 
 _For solutions, please see the `Exercises.hs` modules inside [the `answers`
